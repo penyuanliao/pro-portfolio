@@ -1,7 +1,16 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <RouterView v-slot="{ Component }">
+    <Suspense>
+      <template #default>
+        <div>
+          <component :is="Component" />
+        </div>
+      </template>
+      <template #fallback>
+      </template>
+    </Suspense>
+  </RouterView>
 </template>
