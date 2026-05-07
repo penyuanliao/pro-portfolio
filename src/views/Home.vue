@@ -1,4 +1,4 @@
-<template>
+<template xmlns="http://www.w3.org/1999/html">
   <div
     class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden text-slate-900 transition-colors duration-300 dark:text-white"
   >
@@ -7,11 +7,11 @@
 
     <!-- 內容區域 -->
     <div class="z-10 text-center">
-      <h1 ref="title" class="mb-4 text-6xl font-bold opacity-0">
-        Creative <span class="text-blue-500">Portfolio</span>
+      <h1 ref="title" class="mb-4 text-4xl font-bold opacity-0 px-4 md:text-6xl md:leading-tight">
+        Hi, I'm  <span class="text-blue-500">Benson</span>,<br>A Full-Stack Programmer
       </h1>
       <p ref="subtitle" class="mb-8 text-xl text-slate-500 opacity-0 dark:text-slate-400">
-        Built with Vue 3, Vite, PixiJS & GSAP
+        with over 12 years of write code experience.
       </p>
       <div ref="cta" class="opacity-0">
         <router-link
@@ -30,16 +30,21 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { Application } from 'pixi.js'
 import gsap from 'gsap'
 
-const pixiContainer = ref<HTMLDivElement | null>(null)
-const title = ref(null)
-const subtitle = ref(null)
-const cta = ref(null)
+const pixiContainer = ref<HTMLElement | null>(null)
+const title = ref<HTMLElement | null>(null)
+const subtitle = ref<HTMLElement | null>(null)
+const cta = ref<HTMLElement | null>(null)
 let app: Application | null = null
 
 onMounted(async () => {
   // 1. 初始化 PixiJS 背景 (簡單範例)
   app = new Application()
-  await app.init({ resizeTo: window, backgroundAlpha: 0 })
+  await app.init({
+    resizeTo: window,
+    backgroundAlpha: 0,
+    resolution: window.devicePixelRatio || 1,
+    autoDensity: true,
+  })
   pixiContainer.value?.appendChild(app.canvas)
 
   // 2. GSAP 進場動畫
