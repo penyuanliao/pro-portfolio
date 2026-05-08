@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import ProjectCard from './ProjectCard.vue'
@@ -46,6 +46,9 @@ onMounted(() => {
       )
     })
   })
+})
+onUnmounted(() => {
+  if (ctx) ctx.revert()
 })
 </script>
 
