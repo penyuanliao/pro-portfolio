@@ -25,13 +25,8 @@
   </div>
 </template>
 
-<style scoped>
-.cursor {
-  animation: blink 1s step-end infinite;
-}
+<style scoped lang="scss">
 
-@keyframes blink {
-  from, to { opacity: 1; }
-  50% { opacity: 0; }
-}
+
+
 </style>

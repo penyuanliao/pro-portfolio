@@ -5,7 +5,7 @@ import TextTypingEffect from '@/components/typewriter/TextTypingEffect.vue'
 <template>
   <div class="min-h-screen overflow-x-hidden py-10 md:py-20 text-slate-900 transition-colors duration-300 dark:text-slate-100">
     <div class="mx-auto max-w-4xl px-6">
-      <TextTypingEffect/>
+      <TextTypingEffect mode="terminal"/>
     </div>
   </div>
 </template>
