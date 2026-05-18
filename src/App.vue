@@ -18,7 +18,7 @@ const expertise = ref<SkillItem[]>([
   <Header class="z-30" />
   <GridBackground />
   <MySkills :expertise="expertise" class="absolute right-6 top-20 z-20" />
-  <ReviewBox />
+<!--  <ReviewBox />-->
   <!--  <ThemeToggle class="fixed" />-->
   <RouterView v-slot="{ Component }">
     <Suspense>

@@ -7,14 +7,14 @@
     <div class="relative inline-block group border border-blue-500/40 p-2 md:p-4">
       
       <!-- Corner Handles (Adobe Style) -->
-      <div class="adobe-handle -top-1.5 -left-1.5"></div>
-      <div class="adobe-handle -top-1.5 -right-1.5"></div>
-      <div class="adobe-handle -bottom-1.5 -left-1.5"></div>
-      <div class="adobe-handle -bottom-1.5 -right-1.5"></div>
+      <div class="edit-handles -top-1.5 -left-1.5"></div>
+      <div class="edit-handles -top-1.5 -right-1.5"></div>
+      <div class="edit-handles -bottom-1.5 -left-1.5"></div>
+      <div class="edit-handles -bottom-1.5 -right-1.5"></div>
 
       <!-- Optional: Center Handles for even more Adobe feel -->
-      <div class="adobe-handle top-1/2 -translate-y-1/2 -left-1.5"></div>
-      <div class="adobe-handle top-1/2 -translate-y-1/2 -right-1.5"></div>
+      <div class="edit-handles top-1/2 -translate-y-1/2 -left-1.5"></div>
+      <div class="edit-handles top-1/2 -translate-y-1/2 -right-1.5"></div>
 
       <div class="flex items-center">
         <p class="font-mono text-3xl font-bold tracking-tight md:text-5xl lg:text-6xl">
@@ -25,8 +25,10 @@
   </div>
 </template>
 
-<style scoped lang="scss">
-.adobe-handle {
+<style scoped>
+@reference "@/style.css";
+
+.edit-handles {
   @apply absolute size-2.5 bg-white border border-blue-500 shadow-sm z-10;
   /* 模擬 Adobe 的藍色選取點 */
 }

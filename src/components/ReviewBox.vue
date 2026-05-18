@@ -21,7 +21,9 @@
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
+@reference "@/style.css";
+
 .left-center {
   @apply left-1/2 -translate-x-1/2;
 }

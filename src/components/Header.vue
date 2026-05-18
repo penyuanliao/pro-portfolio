@@ -147,7 +147,9 @@ onUnmounted(() => {
   </header>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
+@reference "@/style.css";
+
 .popup-button {
   @apply relative inline-grid size-7 cursor-pointer place-items-center rounded-md text-gray-950 hover:bg-gray-950/5 dark:text-white dark:hover:bg-white/10;
 }
