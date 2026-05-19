@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, onUnmounted, type Component } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
@@ -10,6 +10,10 @@ interface TimelineItem {
   icon: string
   start?: string
   end?: string
+  desc?: string
+  company?: string
+  // 自定義圖示元件
+  iconComponent?: Component
   [key: string]: any
 }
 
@@ -25,54 +29,62 @@ const props = defineProps<{
   activeIndex?: number
   // 是否開啟滾輪追蹤功能
   scrollTrack?: boolean
+  // 內容垂直置中
+  verticalCenter?: boolean
+  // 開始圖示
+  startIcon?: string
+  // 結束圖示
+  endIcon?: string
 }>()
 
 const emit = defineEmits(['update:activeIndex'])
 
 const side = props.side || 'left'
-const defaultGradient = 'linear-gradient(to bottom, #3b82f6, #8b5cf6, #ec4899, #f59e0b)'
-const activeGradient = props.lineGradient || defaultGradient
+const activeGradient = props.lineGradient || 'linear-gradient(to bottom, #3b82f6, #8b5cf6, #ec4899, #f59e0b)'
 const timelineRef = ref(null)
-const lineRef = ref(null)
+const lineRef = ref<HTMLElement | null>(null)
+const itemRefs = ref<HTMLElement[]>([]) // 用於取代 querySelectorAll
 
 const lineItems = computed(() => {
   return [
     // 頂部裝飾節點
     {
       title: '',
-      icon: 'work',
+      icon: props.startIcon ? props.startIcon : 'work',
       start: '',
     },
     ...props.items,
     {
       title: '',
-      icon: 'work',
-      start: ''
-    }
+      icon: props.endIcon ? props.endIcon : 'work',
+      start: '',
+    },
   ]
 })
+
+const setItemRef = (el: any) => {
+  if (el) itemRefs.value.push(el as HTMLElement)
+}
 
 /**
  * 計算並更新彩色線條的高度
  */
 const updateLineHeight = () => {
   if (!timelineRef.value || !lineRef.value) return
-  const allItems = (timelineRef.value as HTMLElement).querySelectorAll('.stagger-item')
+  const allItems = itemRefs.value
 
   // 獲取節點中心點的輔助函式
   const getCenterY = (el: HTMLElement) => {
-    // icon 容器高度為 40px (h-10)，其中心點在 offsetTop + 20px
-    return el.offsetTop + 20
+    const iconEl = el.querySelector('.icon-container') as HTMLElement
+    return el.offsetTop + (iconEl?.offsetHeight || 40) / 2
   }
 
-  const startCenter = getCenterY(allItems[0] as HTMLElement)
+  const startCenter = getCenterY(allItems[0])
   let targetHeight = 0
 
-  // 只有當 activeIndex 大於 0 且對應的項目存在時才計算高度
-  if (props.activeIndex !== undefined && props.activeIndex > 0 && allItems[props.activeIndex]) {
-    const index = props.activeIndex
-    const endCenter = getCenterY(allItems[index] as HTMLElement)
-    targetHeight = endCenter - startCenter
+  // 只要 activeIndex 存在且大於等於 0
+  if (props.activeIndex !== undefined && props.activeIndex >= 0 && allItems[props.activeIndex]) {
+    targetHeight = getCenterY(allItems[props.activeIndex]) - startCenter
   }
 
   // 使用 GSAP 平滑動畫改變高度
@@ -83,27 +95,49 @@ const updateLineHeight = () => {
   })
 }
 
+const iconPositionTimeline = (index: number) => {
+  if (side.startsWith('alternate')) {
+    return index % 2 === 0 ? 'left-0 -translate-x-1/2' : 'right-0 translate-x-1/2';
+  } else if (side.startsWith('right')) {
+    return 'right-0 translate-x-1/2'
+  } else {
+    return 'left-0 -translate-x-1/2'
+  }
+}
+
+/**
+ * 獲取項目的樣式類別
+ */
+const getItemClasses = (index: number) => {
+  const isActive = index === props.activeIndex
+  const baseClasses = 'stagger-item group relative transition-all duration-500'
+  const activeClass = isActive ? 'is-active' : ''
+
+  let layoutClass = ''
+  if (side === 'alternate') {
+    layoutClass = index % 2 === 0 ? 'item-right ml-auto w-1/2 pl-10' : 'item-left mr-auto w-1/2 pr-10 text-right'
+  } else if (side === 'right') {
+    layoutClass = 'pr-10 text-right'
+  } else {
+    layoutClass = 'pl-10'
+  }
+
+  return `${baseClasses} ${activeClass} ${layoutClass}`
+}
+
+let ctx: gsap.Context
+
 onMounted(() => {
+  if (!timelineRef.value) return
 
-
-  console.log(`window height`, document.body.clientHeight)
-
-
-  const timeline = timelineRef.value
-
-  if (!timeline) return
-
-  gsap.context(() => {
-    // 進場動畫執行
-
-    // 根據 side 決定動畫位移方向
+  ctx = gsap.context(() => {
     const getStaggerX = (el: HTMLElement) => {
       if (side === 'right') return 20
       if (side === 'left') return -20
       return el.classList.contains('item-left') ? -20 : 20
     }
 
-    const tl = gsap.timeline()
+    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
 
     // 針對每個項目進行動畫，以便處理不同的 x 方向
     const items = gsap.utils.toArray<HTMLElement>('.stagger-item')
@@ -114,7 +148,6 @@ onMounted(() => {
           opacity: 0,
           x: getStaggerX(item),
           duration: 0.8,
-          ease: 'power2.out',
         },
         i === 0 ? '-=0.5' : '-=0.6',
       )
@@ -122,7 +155,7 @@ onMounted(() => {
 
     // 滾輪追蹤邏輯
     if (props.scrollTrack) {
-      const domItems = (timeline as HTMLElement).querySelectorAll('li.stagger-item')
+      const domItems = itemRefs.value
       // 我們跳過第一個裝飾點和最後一個佔位點，只偵測中間的 v-for 項目
       domItems.forEach((item, index) => {
         if (index === 0 || index === domItems.length - 1) return
@@ -136,21 +169,25 @@ onMounted(() => {
           end: 'bottom center', // 當元素底部離開螢幕中心
           preventOverlaps: true,
           fastScrollEnd: true,
-          onEnter: () => emit('update:activeIndex', index), // 直接發送 DOM 索引
-          onEnterBack: () => emit('update:activeIndex', index), // 直接發送 DOM 索引
+          onEnter: () => emit('update:activeIndex', index),
+          onEnterBack: () => emit('update:activeIndex', index),
           onLeaveBack: isFirst ? () => emit('update:activeIndex', 0) : undefined,
         })
       })
 
-      // --- 全域邊界處理 ---
-
-      // 1. 處理回到最頂部
+      // 1. 處理回到最頂部：使用 ScrollTrigger 監控捲軸位置，確保靠近頂部時歸零
       ScrollTrigger.create({
-        trigger: document.body,
-        start: 'top top',
-        onEnterBack: () => emit('update:activeIndex', 0),
+        start: 0,
+        end: 50, // 在頂部 50px 的範圍內
+        onUpdate: (self) => {
+          // 當捲軸回到非常靠近頂部的位置時，強制設為 0
+          if (self.scroll() < 10) emit('update:activeIndex', 0)
+        },
+        onRefresh: () => {
+          // 重新整理頁面時的檢查
+          if (window.scrollY === 0) emit('update:activeIndex', 0)
+        },
       })
-
       // 2. 處理滾動到最底部
       const lastItem = domItems[domItems.length - 2]
       ScrollTrigger.create({
@@ -161,20 +198,22 @@ onMounted(() => {
       })
     }
 
-    // 重要：當進場動畫與佈局穩定後，再計算線條高度並刷新 ScrollTrigger
     tl.add(() => {
       updateLineHeight()
       ScrollTrigger.refresh()
     })
-  }, timeline)
+
+    if (window.scrollY === 0) emit('update:activeIndex', 0)
+  }, timelineRef.value)
 })
 
-// 監聽 activeIndex 變化，隨時調整線條高度
+onUnmounted(() => {
+  if (ctx) ctx.revert() // 清除所有 GSAP 動畫與 ScrollTrigger
+})
+
 watch(
   () => props.activeIndex,
-  () => {
-    updateLineHeight()
-  },
+  () => updateLineHeight(),
 )
 </script>
 
@@ -196,9 +235,9 @@ watch(
       <div
         ref="lineRef"
         :class="[
-          'timeline-line absolute top-5 w-[2px] h-0 origin-top shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+          'timeline-line absolute top-5 h-0 w-[2px] origin-top shadow-[0_0_8px_rgba(59,130,246,0.5)]',
           side === 'alternate'
-            ? 'left-1/2 -translate-x-1/2' // 這裡的定位是正確的，不需要修改
+            ? 'left-1/2 -translate-x-1/2'
             : side === 'right'
               ? 'right-[-1px]'
               : 'left-[-1px]',
@@ -207,21 +246,13 @@ watch(
       <li
         v-for="(item, index) in lineItems"
         :key="index"
-        :class="[
-          'stagger-item group relative',
-          index === activeIndex ? 'is-active' : '',
-          side === 'alternate' // 這裡的 class 判斷是正確的，不需要修改
-            ? index % 2 === 0
-              ? 'item-right ml-auto w-1/2 pl-10'
-              : 'item-left mr-auto w-1/2 pr-10 text-right'
-            : side === 'right'
-              ? 'pr-10 text-right'
-              : 'pl-10',
-        ]">
+        :ref="setItemRef"
+        :class="getItemClasses(index)">
         <!-- 節點圖示容器：精確對齊線條中心 -->
         <div
+          v-if="item.icon"
           :class="[
-            'absolute top-0 z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white bg-slate-300 p-2 shadow-sm transition-all duration-300 dark:border-slate-500 dark:bg-slate-700',
+            'icon-container absolute top-0 z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-white bg-slate-300 p-2 shadow-sm transition-all duration-300 dark:border-slate-500 dark:bg-slate-700',
             'group-[.is-active]:scale-125 group-[.is-active]:border-emerald-200 group-[.is-active]:bg-emerald-500 group-[.is-active]:shadow-[0_0_15px_rgba(16,185,129,0.5)]',
             side === 'alternate'
               ? index % 2 === 0
@@ -231,22 +262,41 @@ watch(
                 ? 'right-0 translate-x-1/2'
                 : 'left-0 -translate-x-1/2',
           ]">
-          <!-- 特殊處理 Cocos2D 單色圖示 -->
-          <div
-            v-if="item.icon === 'cocos2d'"
-            :style="{ maskImage: `url(${getIconUrl(item.icon)})` }"
-            class="h-full w-full bg-slate-700 mask-contain mask-center mask-no-repeat dark:bg-blue-400"></div>
-          <!-- 其他彩色圖示 -->
-          <img
-            v-else
-            :src="getIconUrl(item.icon)"
-            :alt="item.title"
-            class="h-full w-full object-contain" />
+          <slot name="icon" :item="item">
+            <div v-if="item.iconComponent" class="h-full w-full mask-contain mask-center">
+              <component :is="item.iconComponent" name="star" />
+            </div>
+            <!-- 特殊處理 Cocos2D 單色圖示 -->
+            <div
+              v-else-if="item.icon === 'cocos2d'"
+              :style="{ maskImage: `url(${getIconUrl(item.icon)})` }"
+              class="h-full w-full bg-slate-700 mask-contain mask-center mask-no-repeat dark:bg-blue-400"></div>
+            <!-- 其他彩色圖示 -->
+            <img
+              v-else-if="item.icon"
+              :src="getIconUrl(item.icon)"
+              :alt="item.title"
+              class="h-full w-full object-contain text-white" />
+            <div v-else></div>
+          </slot>
         </div>
-        <div :style="{
-          visibility: `${!!item.title ? 'visible' : 'hidden'}`,
-          minHeight: `${ index === lineItems.length -1 ? '40px' : '200px'}`
-        }">
+        <!-- 沒有圖示的情況 -->
+        <div v-else
+             :class="['absolute top-1 z-10 flex shrink-0 items-center justify-center translate-y-1/2', iconPositionTimeline(index)]"
+        >
+          <span class="relative flex size-3">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
+            <span class="relative inline-flex size-3 rounded-full bg-sky-500"></span>
+          </span>
+        </div>
+        <div
+          :class="[verticalCenter ? 'flex -translate-y-1/2 flex-col justify-center pt-[25px]' : '']"
+          :style="{
+            visibility: `${!!item.title ? 'visible' : 'hidden'}`,
+            minHeight: `${index === lineItems.length - 1 ? '20px' : '200px'}`,
+            maxHeight: `${index === lineItems.length - 1 ? '20px' : 'auto'}`,
+          }">
           <!-- 內容卡片插槽：讓父元件決定卡片長什麼樣子 -->
           <slot :item="item">
             <div
