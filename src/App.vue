@@ -4,7 +4,7 @@ import { RouterView } from 'vue-router'
 import GridBackground from '@/components/GridBackground.vue'
 import Header from '@/components/Header.vue'
 import MySkills, { type SkillItem } from '@/components/MySkills.vue'
-import ReviewBox from '@/components/ReviewBox.vue'
+// import ReviewBox from '@/components/ReviewBox.vue'
 
 const expertise = ref<SkillItem[]>([
   { name: 'Node.js', icon: '/src/assets/expertise/nodejs.svg' },

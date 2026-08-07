@@ -37,9 +37,15 @@ const props = defineProps<{
   endIcon?: string
 }>()
 
+const SIDE_TYPE = {
+  LEFT: 'left',
+  RIGHT: 'right',
+  ALTERNATE: 'alternate',
+}
+
 const emit = defineEmits(['update:activeIndex'])
 
-const side = props.side || 'left'
+const side = props.side || SIDE_TYPE.LEFT
 const activeGradient = props.lineGradient || 'linear-gradient(to bottom, #3b82f6, #8b5cf6, #ec4899, #f59e0b)'
 const timelineRef = ref(null)
 const lineRef = ref<HTMLElement | null>(null)
@@ -113,7 +119,7 @@ const getItemClasses = (index: number) => {
   const baseClasses = 'stagger-item group relative transition-all duration-500'
   const activeClass = isActive ? 'is-active' : ''
 
-  let layoutClass = ''
+  let layoutClass;
   if (side === 'alternate') {
     layoutClass = index % 2 === 0 ? 'item-right ml-auto w-1/2 pl-10' : 'item-left mr-auto w-1/2 pr-10 text-right'
   } else if (side === 'right') {
@@ -131,27 +137,27 @@ onMounted(() => {
   if (!timelineRef.value) return
 
   ctx = gsap.context(() => {
-    const getStaggerX = (el: HTMLElement) => {
-      if (side === 'right') return 20
-      if (side === 'left') return -20
-      return el.classList.contains('item-left') ? -20 : 20
-    }
+    // const getStaggerX = (el: HTMLElement) => {
+    //   if (side === 'right') return 20
+    //   if (side === 'left') return -20
+    //   return el.classList.contains('item-left') ? -20 : 20
+    // }
 
     const tl = gsap.timeline({ defaults: { ease: 'power2.out' } })
 
     // 針對每個項目進行動畫，以便處理不同的 x 方向
-    const items = gsap.utils.toArray<HTMLElement>('.stagger-item')
-    items.forEach((item, i) => {
-      tl.from(
-        item,
-        {
-          opacity: 0,
-          x: getStaggerX(item),
-          duration: 0.8,
-        },
-        i === 0 ? '-=0.5' : '-=0.6',
-      )
-    })
+    // const items = gsap.utils.toArray<HTMLElement>('.stagger-item')
+    // items.forEach((item, i) => {
+    //   tl.from(
+    //     item,
+    //     {
+    //       opacity: 0,
+    //       x: getStaggerX(item),
+    //       duration: 0.8,
+    //     },
+    //     i === 0 ? '-=0.5' : '-=0.6',
+    //   )
+    // })
 
     // 滾輪追蹤邏輯
     if (props.scrollTrack) {
@@ -224,23 +230,23 @@ watch(
       <!-- 動態背景線 -->
       <div
         :class="[
-          'absolute top-5 bottom-5 w-[2px] opacity-20 dark:opacity-10',
+          'absolute top-5 bottom-5 w-0.5 opacity-20 dark:opacity-10',
           side === 'alternate'
             ? 'left-1/2 -translate-x-1/2'
             : side === 'right'
-              ? 'right-[-1px]'
-              : 'left-[-1px]',
+              ? '-right-px'
+              : '-left-px',
         ]"
         :style="{ background: activeGradient }"></div>
       <div
         ref="lineRef"
         :class="[
-          'timeline-line absolute top-5 h-0 w-[2px] origin-top shadow-[0_0_8px_rgba(59,130,246,0.5)]',
+          'timeline-line absolute top-5 h-0 w-0.5 origin-top shadow-[0_0_8px_rgba(59,130,246,0.5)]',
           side === 'alternate'
             ? 'left-1/2 -translate-x-1/2'
             : side === 'right'
-              ? 'right-[-1px]'
-              : 'left-[-1px]',
+              ? '-right-px'
+              : '-left-px',
         ]"
         :style="{ background: activeGradient }"></div>
       <li
@@ -291,7 +297,7 @@ watch(
           </span>
         </div>
         <div
-          :class="[verticalCenter ? 'flex -translate-y-1/2 flex-col justify-center pt-[25px]' : '']"
+          :class="[verticalCenter ? 'flex -translate-y-1/2 flex-col justify-center pt-6.25' : '']"
           :style="{
             visibility: `${!!item.title ? 'visible' : 'hidden'}`,
             minHeight: `${index === lineItems.length - 1 ? '20px' : '200px'}`,

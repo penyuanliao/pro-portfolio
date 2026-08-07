@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import TextTypingEffect from '@/components/typewriter/TextTypingEffect.vue'
-import { markRaw, ref } from 'vue'
+import { ref } from 'vue'
 import Timeline from '@/components/Timeline.vue'
 import { formatDate, getIconUrl } from '@/utils/timelineHelpers.ts'
 import Symbols from '@/components/Symbols.vue'

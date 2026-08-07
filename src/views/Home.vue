@@ -78,7 +78,8 @@ const pixiContainer = ref<HTMLElement | null>(null)
 const title = ref<HTMLElement | null>(null)
 const subtitle = ref<HTMLElement | null>(null)
 const cta = ref<HTMLElement | null>(null)
-const pixiEnabled: boolean = false
+// 開啟
+const pixiEnabled: boolean = true;
 let app: Application | null = null
 let ctx: gsap.Context | null = null
 

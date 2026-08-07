@@ -26,7 +26,9 @@ onMounted(() => {
           </div>
         </div>
         <!-- 裝飾用的圓圈 -->
-        <div class="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-blue-500 opacity-20"></div>
+        <div class="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-blue-500 opacity-20">
+          <img src="/favicon.svg" alt="favicon"/>
+        </div>
       </div>
 
       <!-- 內容區域 -->
@@ -61,17 +63,23 @@ onMounted(() => {
           <div class="mt-12">
             <h3 class="mb-6 text-sm font-bold tracking-[0.2em] text-blue-600 uppercase">Skills</h3>
             <div class="flex flex-wrap gap-2">
-              <span v-for="s in ['Vue', 'TS', 'GSAP', 'PixiJS']" :key="s" class="rounded bg-slate-100 px-2 py-1 text-xs font-semibold dark:bg-slate-700">
-                {{ s }}
+              <span v-for="skill in ['Vue', 'TS', 'GSAP', 'PixiJS']" :key="skill" class="rounded bg-slate-100 px-2 py-1 text-xs font-semibold dark:bg-slate-700">
+                {{ skill }}
               </span>
             </div>
           </div>
 
           <div class="mt-12">
-            <h3 class="mb-6 text-sm font-bold tracking-[0.2em] text-blue-600 uppercase">SUMMERY</h3>
+            <h3 class="mb-6 text-sm font-bold tracking-[0.2em] text-blue-600 uppercase">概要|SUMMARY</h3>
             <div class="flex flex-wrap gap-2">
-              <p>
-                Creative and user-focused Product Designer specializing in crafting engaging digital experiences and scalable design systems. Skilled at solving complex problems with innovative design solutions, focusing on user-centric approaches across diverse industries like e-commerce, cryptocurrency, and marketplaces.
+              <p class="whitespace-pre-line">
+                {{`Hi，我是Benson，我有豐富的開發遊戲經驗工程師。
+                ▫️開發過iOS Application與大型遊戲專案開發經驗
+                ▫️執行過Node.js伺服器撰寫, 撰寫Websocket, TCP, RTMP 服務串接, 遊戲流程開發
+                ▫️開發過Cocos Creator 3.x 版本機率遊戲開發
+                ▫️開發過Pixi.js 機率遊戲
+                ▫️UI/UX 經驗`
+                }}
               </p>
             </div>
           </div>
