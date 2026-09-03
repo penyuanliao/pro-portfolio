@@ -74,11 +74,11 @@ onMounted(() => {
             <div class="flex flex-wrap gap-2">
               <p class="whitespace-pre-line">
                 {{`Hi，我是Benson，我有豐富的開發遊戲經驗工程師。
-                ▫️開發過iOS Application與大型遊戲專案開發經驗
-                ▫️執行過Node.js伺服器撰寫, 撰寫Websocket, TCP, RTMP 服務串接, 遊戲流程開發
-                ▫️開發過Cocos Creator 3.x 版本機率遊戲開發
-                ▫️開發過Pixi.js 機率遊戲
-                ▫️UI/UX 經驗`
+                ▫️開發過iOS Application與大型遊戲專案開發經驗。
+                ▫️執行過Node.js伺服器撰寫, 撰寫Websocket, TCP, RTMP 服務串接, 遊戲流程開發。
+                ▫️開發過Cocos Creator 3.x 版本機率遊戲開發。
+                ▫️開發過Pixi.js 機率遊戲。
+                ▫️UI/UX 經驗工程師。`
                 }}
               </p>
             </div>

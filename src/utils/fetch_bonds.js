@@ -1,5 +1,7 @@
-import puppeteer from 'puppeteer-core';
-import fs from 'fs';
+import puppeteer from 'puppeteer-core'
+import fs from 'fs'
+import fsPromises from 'node:fs/promises'
+import chalk from 'chalk'
 
 // 輔助函式：計算距離到期日剩餘年數 (Year Fraction)
 function calculateYearsToMaturity(maturityDateStr) {
@@ -40,7 +42,30 @@ function calculateYields(couponRateStr, buyQuoteStr, maturityDateStr) {
     years,
   }
 }
+async function getFiles(folderPath = './') {
+  try {
+    const entries = await fsPromises.readdir(folderPath, { withFileTypes: true });
+    return entries
+      .filter((entry) => entry.isFile() && entry.name.includes(".json"))
+      .map(entry => entry.name)
+  } catch (error) {
+    console.error('Error reading folder:', error);
+  }
+}
+// 讀取上一次
+function loadJSON(path) {
+  const data = fs.readFileSync(path, 'utf8');
 
+  return JSON.parse(data)
+}
+// 分析
+function dataMapping(json) {
+  const data = new Map();
+  json.forEach((item) => {
+    data.set(item.product_code, item);
+  })
+  return data;
+}
 async function fetchEsunBonds() {
   console.log('正在啟動本機 Chrome 瀏覽器...');
 
@@ -115,6 +140,9 @@ async function fetchEsunBonds() {
     // 處理並附加殖利率數據
     const bondsWithYields = bonds.map(bond => {
       const yields = calculateYields(bond.coupon_rate, bond.buy_quote, bond.maturity_date);
+      const { product_name, product_code, buy_quote, coupon_rate } = bond;
+      const bQuote = parseFloat(buy_quote);
+      // if (bQuote <= 100 && yields.years < 20 && yields.years > 1) console.log(`${product_name}(${product_code}) : ${buy_quote}(${coupon_rate}) - ${yields.years.toFixed(2)}`)
       return {
         ...bond,
         metrics: {
@@ -125,12 +153,47 @@ async function fetchEsunBonds() {
       }
     });
 
+    const prevData = dataMapping(loadJSON(`./esun_bonds.json`));
+
+    // 顯示分析
+    JSON.parse(JSON.stringify(bondsWithYields)).sort((a, b) => {
+      return parseFloat(a.metrics.years) < parseFloat(b.metrics.years) ? -1 : 1;
+    }).map(({ product_name, product_code, buy_quote, coupon_rate, metrics }) => {
+
+      const bQuote = parseFloat(buy_quote);
+      const couponRate = parseFloat(coupon_rate);
+      // const bondYield = parseFloat(metrics.current_yield_percent); // 殖利率
+      let buyStr = buy_quote;
+      let couponRateStr = coupon_rate;
+      if (bQuote > 100) {
+        buyStr = chalk.gray(buy_quote)
+      }
+      if (couponRate > 3.5) {
+        couponRateStr = chalk.cyan(coupon_rate);
+      }
+      if (prevData.get(product_code)) {
+        const item = prevData.get(product_code);
+        const diff = Math.abs(parseFloat(item.buy_quote) - bQuote).toFixed(2);
+        if (bQuote > parseFloat(item.buy_quote)) {
+          buyStr += chalk.redBright(` ▲ ${diff} `);
+        }
+        if (bQuote < parseFloat(item.buy_quote)) {
+          buyStr += chalk.greenBright(` ▼ ${diff} `);
+        }
+      }
+
+      console.log(`${product_name}(${product_code}) : ${buyStr}(${couponRateStr}) - ${metrics.years}`)
+    })
+
     console.log(`成功擷取到 ${bondsWithYields.length} 筆債券資料！`);
 
     const today = new Date();
     // 4. 寫入 esun_bonds.json
     const outputFile = `esun_bonds_${today.getMonth() + 1}_${today.getDate()}.json`;
     fs.writeFileSync(outputFile, JSON.stringify(bondsWithYields, null, 2), 'utf-8');
+
+    fs.writeFileSync('esun_bonds.json', JSON.stringify(bondsWithYields, null, 2), 'utf-8');
+
     console.log(`檔案已成功儲存至 ${outputFile}`);
 
   } catch (error) {
@@ -143,4 +206,7 @@ async function fetchEsunBonds() {
 
 fetchEsunBonds().then(_ => {
   console.log('完成')
+  process.exit(0);
 });
+
+
