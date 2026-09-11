@@ -68,7 +68,6 @@ function dataMapping(json) {
 }
 async function fetchEsunBonds() {
   console.log('正在啟動本機 Chrome 瀏覽器...');
-
   // 啟動瀏覽器：指定使用電腦現有的 Chrome
   const browser = await puppeteer.launch({
     headless: true,
@@ -152,8 +151,9 @@ async function fetchEsunBonds() {
         },
       }
     });
-
-    const prevData = dataMapping(loadJSON(`./esun_bonds.json`));
+    const specifyFile = process.argv[2] || '';
+    const prevFilePath = (specifyFile.includes(".json")) ? specifyFile : `./esun_bonds.json`;
+    const prevData = dataMapping(loadJSON(prevFilePath));
 
     // 顯示分析
     JSON.parse(JSON.stringify(bondsWithYields)).sort((a, b) => {
@@ -162,7 +162,7 @@ async function fetchEsunBonds() {
 
       const bQuote = parseFloat(buy_quote);
       const couponRate = parseFloat(coupon_rate);
-      // const bondYield = parseFloat(metrics.current_yield_percent); // 殖利率
+      const bondYield = parseFloat(metrics.approximate_ytm_percent); // 殖利率
       let buyStr = buy_quote;
       let couponRateStr = coupon_rate;
       if (bQuote > 100) {
@@ -182,7 +182,7 @@ async function fetchEsunBonds() {
         }
       }
 
-      console.log(`${product_name}(${product_code}) : ${buyStr}(${couponRateStr}) - ${metrics.years}`)
+      console.log(`${product_name}(${product_code}) : ${buyStr}(${couponRateStr}) - ${metrics.years}\t[${chalk.hex(bondYield < 2 ? "#7a737a" : "#00b0ba")(bondYield.toString() + "%")}]`)
     })
 
     console.log(`成功擷取到 ${bondsWithYields.length} 筆債券資料！`);
